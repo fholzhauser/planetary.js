@@ -58,6 +58,36 @@ planet.draw(canvas);
 
 Congratulations! You've rendered your first globe.
 
+Added functionality (ofrohn)
+-------------------
+
+A simple plugin to expose mouse actions  
+
+```js
+  // This plugin exposes mouse actions.
+  function mouse(options) {
+    options = options || {};
+    var noop = function() {},
+        onClick = options.onClick || noop,
+        onMousedown = options.onMousedown || noop,
+        onMousemove = options.onMousemove || noop,
+        onMouseup = options.onMouseup || noop;
+
+
+    return function(planet) {
+   
+      planet.onInit(function() {
+         d3.select(planet.canvas).on('click', onClick.bind(planet));
+         d3.select(planet.canvas).on('mousedown', onMousedown.bind(planet));
+         d3.select(planet.canvas).on('mousemove', onMousemove.bind(planet));
+         d3.select(planet.canvas).on('mouseup', onMouseup.bind(planet));
+      });
+
+    };
+  };
+```
+
+
 Documentation
 -------------
 
