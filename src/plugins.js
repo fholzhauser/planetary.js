@@ -242,7 +242,7 @@
     };
   };
 
-  planetaryjs.plugins. mouse = function(options) {
+  planetaryjs.plugins.mouse = function(options) {
     options = options || {};
     var noop = function() {},
         onClick = options.onClick || noop,
@@ -260,5 +260,84 @@
          d3.select(planet.canvas).on('mouseup', onMouseup.bind(planet));
       });
 
+    };
+  };
+
+  
+  planetaryjs.plugins.markers = function (config) {
+    var marks = [];
+    config = config || {};
+
+    var addMark = function(lng, lat, options) {
+      options = options || {};
+      options.color = options.color || config.color || 'white';
+      options.size = options.size || config.size || 5;
+      var mark = { options: options };
+      if (config.latitudeFirst) {
+        mark.lat = lng;
+        mark.lng = lat;
+      } else {
+        mark.lng = lng;
+        mark.lat = lat;
+      }
+      marks.push(mark);
+    };
+
+    var removeMark = function(lng, lat) {
+      if (lng === "*") {
+        marks = [];
+        return;
+      }    
+      if (arguments.length === 1 && lng < marks.length) {
+        marks.splice(lng, 1);
+        return;
+      }
+      if (arguments.length === 2) {
+        for (var i=0; i <= marks.length; i++) {
+          if (marks[i].lng === lng && marks[i].lat === lat) {
+            marks.splice(i, 1);
+            return;  
+          }
+        }
+      }
+    }
+
+    var drawMarks = function(planet, context) {
+      for (var i = 0; i < marks.length; i++) {
+        var mark = marks[i];
+        drawMark(planet, context, mark);
+      }
+    };
+
+    var drawMark = function(planet, context, mark) {
+      var color = mark.options.color,
+          size = mark.options.size * 5,
+          pos = planet.projection([mark.lng, mark.lat]);
+          
+      context.fillStyle = color;
+      context.beginPath();
+      context.moveTo(pos[0], pos[1]);
+      //context.lineTo(pos[0] - size/2, pos[1] - size);
+      context.arc(pos[0], pos[1] - size, size/2, Math.PI, 0);
+      //context.lineTo(pos[0], pos[1]);
+      context.fill();
+      context.fillStyle = "#fff";
+      context.beginPath();
+      context.arc(pos[0], pos[1]- size, size/4, 0, 2 * Math.PI);
+      context.fill();
+
+    };
+
+    return function (planet) {
+      planet.plugins.markers = {
+        add: addMark,
+        remove: removeMark
+      };
+
+      planet.onDraw(function() {
+        planet.withSavedContext(function(context) {
+          drawMarks(planet, context);
+        });
+      });
     };
   };
