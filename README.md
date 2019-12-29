@@ -87,6 +87,7 @@ A simple plugin to expose mouse actions
   };
 ```
 
+A plugin to display and remove geomarkers on a globe
 
 Documentation
 -------------
