@@ -317,15 +317,12 @@
       context.fillStyle = color;
       context.beginPath();
       context.moveTo(pos[0], pos[1]);
-      //context.lineTo(pos[0] - size/2, pos[1] - size);
       context.arc(pos[0], pos[1] - size, size/2, Math.PI, 0);
-      //context.lineTo(pos[0], pos[1]);
       context.fill();
       context.fillStyle = "#fff";
       context.beginPath();
       context.arc(pos[0], pos[1]- size, size/4, 0, 2 * Math.PI);
       context.fill();
-
     };
 
     return function (planet) {
