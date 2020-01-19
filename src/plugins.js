@@ -305,7 +305,11 @@
     var drawMarks = function(planet, context) {
       for (var i = 0; i < marks.length; i++) {
         var mark = marks[i];
-        drawMark(planet, context, mark);
+        var rot = planet.projection.rotate(),
+            center = [-rot[0], -rot[1]];
+        //draw only if distance from center < 90deg
+        var dist = d3.geo.distance(center, [mark.lng, mark.lat]);
+        if (dist <= Math.PI/2) drawMark(planet, context, mark);
       }
     };
 
@@ -321,7 +325,7 @@
       context.fill();
       context.fillStyle = "#fff";
       context.beginPath();
-      context.arc(pos[0], pos[1]- size, size/4, 0, 2 * Math.PI);
+      context.arc(pos[0], pos[1] - size, size/4, 0, 2 * Math.PI);
       context.fill();
     };
 
@@ -338,3 +342,52 @@
       });
     };
   };
+
+  // This plugin will show concentric hemispheres with increasing opacities,
+  // specifically to show the dark side with increasing levels of twilight.
+  planetaryjs.plugins.hemisphere = function(options) {
+    var pos = {},
+        options = options || {};
+        
+    options.color = options.color || 'black';
+    options.alpha = options.alpha || 0.12;
+
+    var setOrigin = function(lng, lat) {
+      pos.lng = lng;
+      pos.lat = lat;
+    };
+
+    var drawHemisphere = function(context, planet, pos) {
+      context.fillStyle = "#ff0";
+      context.lineStyle = "#000";
+      var circle = d3.geo.circle().origin([pos.lng + 180, -pos.lat]).angle(1.5)();
+      context.beginPath();
+      planet.path.context(context)(circle);
+      context.fill();
+      context.stroke();
+
+      context.fillStyle = options.color;
+      context.globalAlpha = options.alpha;
+
+      for (var i = 0; i <= 3; i++) {
+        circle = d3.geo.circle().origin([pos.lng, pos.lat]).angle(90 - i*6)();
+        context.beginPath();
+        planet.path.context(context)(circle);
+        context.fill();
+      }
+    };
+
+    return function(planet) {
+      planet.plugins.hemisphere = {
+        origin: setOrigin
+      };
+      planet.onInit(function() {});
+      planet.onDraw(function() {
+        if (!pos.hasOwnProperty("lat")) return;
+        planet.withSavedContext(function(context) {
+          drawHemisphere(context, planet, pos);
+        });
+      });
+    };
+  };
+
