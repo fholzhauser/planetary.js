@@ -351,6 +351,7 @@
         
     options.color = options.color || 'black';
     options.alpha = options.alpha || 0.12;
+    options.sun = options.sun || 1;
 
     var setOrigin = function(lng, lat) {
       pos.lng = lng;
@@ -358,14 +359,15 @@
     };
 
     var drawHemisphere = function(context, planet, pos) {
-      context.fillStyle = "#ff0";
-      context.lineStyle = "#000";
-      var circle = d3.geo.circle().origin([pos.lng + 180, -pos.lat]).angle(1.5)();
-      context.beginPath();
-      planet.path.context(context)(circle);
-      context.fill();
-      context.stroke();
-
+      if (options.sun > 0) {
+        context.fillStyle = "#ff0";
+        context.lineStyle = "#000";
+        var circle = d3.geo.circle().origin([pos.lng + 180, -pos.lat]).angle(1)();
+        context.beginPath();
+        planet.path.context(context)(circle);
+        context.fill();
+        context.stroke();
+      }
       context.fillStyle = options.color;
       context.globalAlpha = options.alpha;
 
@@ -391,3 +393,26 @@
     };
   };
 
+  function grid(config) {
+    config = config || {};
+    config.color = config.color || '#999';
+    config.lineWidth = config.lineWidth || 0.25;
+
+    return function(planet) {
+      var graticule = null;
+      
+      planet.onInit(function() {
+        graticule = d3.geo.graticule();
+      });
+
+      planet.onDraw(function() {
+        planet.withSavedContext(function(context) {
+          context.beginPath();
+          planet.path(graticule());
+          context.strokeStyle = config.color;
+          context.lineWidth = config.lineWidth;
+          context.stroke();
+        });
+      });
+    };
+  };
